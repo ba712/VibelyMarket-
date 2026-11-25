@@ -1,0 +1,748 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6c3bff">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vibely Market</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#f7f5fc;
+ color:#241b35;
+}
+header{
+ background:#21172f;
+ color:white;
+ padding:22px 18px;
+}
+.logo{font-size:28px;font-weight:bold}
+.logo span{color:#b18aff}
+header p{color:#ddd}
+.search{
+ width:100%;padding:14px;
+ border:0;border-radius:12px;
+ font-size:15px;
+}
+main{padding:18px}
+h3{margin:25px 0 15px}
+.categories{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:8px;
+}
+.category{
+ background:white;padding:14px 3px;
+ border-radius:12px;text-align:center;
+ font-size:12px;
+}
+.category b{
+ display:block;font-size:25px;
+ margin-bottom:7px;
+}
+.banner{
+ background:linear-gradient(120deg,#7041cb,#b28afa);
+ padding:24px;color:white;
+ border-radius:18px;margin-top:22px;
+}
+.products{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:12px;
+}
+.product{
+ background:white;padding:12px;
+ border-radius:15px;
+}
+.pic{
+ font-size:45px;text-align:center;
+ padding:15px;
+}
+.pic img{
+ width:100%;height:120px;
+ object-fit:contain;
+}
+.product p{font-weight:bold}
+.product button{
+ width:100%;padding:11px;
+ background:#8055e8;color:white;
+ border:0;border-radius:9px;
+}
+nav{
+ position:fixed;bottom:0;width:100%;
+ background:white;padding:14px 4px;
+ display:flex;justify-content:space-around;
+}
+nav button{
+ border:0;background:white;
+ font-size:12px;
+}
+footer{height:75px}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="logo">Vibely<span>Market</span></div>
+ <p>Everything you need, all in one place.</p>
+ <input class="search" id="search"
+ placeholder="Search food, clothes, products..."
+ oninput="showProducts()">
+</header>
+<section id="cartPage" style="display:none;background:white;padding:20px;border-radius:15px;margin:20px 0;color:black;">
+  <h2>🛒 My Cart</h2>
+  <div id="cartItems"></div>
+  <h3>Total: <span id="total">₹0</span></h3>
+  <button onclick="placeOrder()" style="background:green;color:white;padding:12px 25px;border:0;border-radius:10px;margin-top:10px;">
+Place Order
+  </button>
+  <button onclick="closeCart()">Continue Shopping</button>
+</section>
+  <section id="sellerDashboard" style="display:none;background:white;color:black;padding:20px;border-radius:15px;margin:20px 0;">
+  <h2>🏪 Seller Dashboard</h2>
+    <p>Welcome, <b id="sellerWelcome">Seller</b>! 👋</p>
+  <h3>Customer Orders</h3>
+  <div id="sellerOrders">No orders yet.</div>
+  <button onclick="closeSellerDashboard()">Back to Shopping</button>
+    <button onclick="sellerLogout()" style="background:red;color:white;padding:10px;border:0;border-radius:8px;">
+  Logout
+    </button>
+  </section>
+  <section id="sellerLogin" style="display:none;background:white;color:black;padding:20px;border-radius:15px;margin:20px 0;">
+  <h2>🏪 Seller Login</h2>
+
+  <input id="sellerName" type="text"
+  placeholder="Enter Seller Name"
+  style="padding:12px;width:90%;margin:10px 0;">
+
+  <button onclick="sellerLoginNow()"
+  style="background:green;color:white;padding:12px;border:0;border-radius:8px;">
+    Login
+  </button>
+
+  <button onclick="closeSellerLogin()">Back</button>
+  </section>
+<main>
+
+<h3>Explore Categories</h3>
+
+<div class="categories">
+ <div class="category" onclick="filter('Food')"><b>🍔</b>Food</div>
+ <div class="category" onclick="filter('Fashion')"><b>👕</b>Fashion</div>
+ <div class="category" onclick="filter('Grocery')"><b>🥦</b>Grocery</div>
+ <div class="category" onclick="filter('Electronics')"><b>📱</b>Electronics</div>
+</div>
+
+<div class="banner">
+ <h2>Welcome to Vibely!</h2>
+ <p>Shop from your favourite local stores.</p>
+</div>
+
+<h3 id="heading">Popular Products</h3>
+<div class="products" id="products"></div>
+<section id="ordersPage" style="display:none;background:white;color:black;padding:20px;border-radius:15px;margin:20px 0;">
+  <h2>📦 My Orders</h2>
+  <div id="orderList">No orders yet.</div>
+  <button onclick="closeOrders()">Back to Shopping</button>
+</section>
+</main>
+
+<footer></footer>
+
+<nav>
+ <button onclick="filter('All')">🏠 Home</button>
+ <button onclick="alert('Wishlist coming soon')">♡ Wishlist</button>
+ <button onclick="openCart()">🛒 Cart (<span id="cart">0</span>)</button>
+  <button onclick="openOrders()">📦 My Orders</button>
+  <button onclick="openSellerLogin()">🔐 Seller Login</button>
+ <button onclick="alert('Profile coming soon')">👤 Profile</button>
+</nav>
+
+<script>
+const items = [
+ {name:"Burger",price:99,cat:"Food",pic:"🍔"},
+ {name:"Pizza",price:199,cat:"Food",pic:"🍕"},
+ {name:"T-Shirt",price:299,cat:"Fashion",pic:"👕"},
+ {name:"Shoes",price:599,cat:"Fashion",pic:"👟"},
+ {name:"Fruits",price:100,cat:"Grocery",pic:"🍎"},
+ {name:"Vegetables",price:60,cat:"Grocery",pic:"🥦"},
+ {name:"Headphones",price:499,cat:"Electronics",pic:"🎧"},
+ {name:"Smartphone",price:9999,cat:"Electronics",pic:"📱"}
+];
+
+let cart = JSON.parse(localStorage.getItem("vibely_cart") || "[]");
+let current = "All";
+
+function saveCart(){
+ localStorage.setItem("vibely_cart",JSON.stringify(cart));
+ updateCartCount();
+}
+
+function updateCartCount(){
+ document.getElementById("cart").innerText =
+ cart.reduce((sum,item)=>sum+item.qty,0);
+}
+
+function addToCart(product){
+ let key=String(product.id || product.name);
+ let found=cart.find(item=>item.key===key);
+
+ if(found){
+  found.qty++;
+ }else{
+  cart.push({
+   key:key,
+   name:product.name,
+   price:Number(product.price),
+   image:product.image || "",
+   pic:product.pic || "🛍️",
+   qty:1
+  });
+ }
+ saveCart();
+ alert("Product added to cart!");
+}
+
+function changeQty(key,change){
+ let item=cart.find(p=>p.key===key);
+ if(!item)return;
+
+ item.qty+=change;
+
+ if(item.qty<=0){
+  cart=cart.filter(p=>p.key!==key);
+ }
+ saveCart();
+ showCart();
+}
+
+function showCart(){
+ let box=document.getElementById("cartItems");
+ box.innerHTML="";
+ let total=0;
+
+ cart.forEach(item=>{
+  total+=item.price*item.qty;
+
+  let row=document.createElement("div");
+  row.style.padding="12px";
+  row.style.background="white";
+  row.style.margin="10px 0";
+  row.style.borderRadius="12px";
+
+  let name=document.createElement("b");
+  name.textContent=item.pic+" "+item.name;
+
+  let price=document.createElement("p");
+  price.textContent="₹"+item.price;
+
+  let minus=document.createElement("button");
+  minus.textContent="−";
+  minus.onclick=()=>changeQty(item.key,-1);
+
+  let quantity=document.createElement("span");
+  quantity.textContent=" "+item.qty+" ";
+
+  let plus=document.createElement("button");
+  plus.textContent="+";
+  plus.onclick=()=>changeQty(item.key,1);
+
+  row.append(name,price,minus,quantity,plus);
+  box.appendChild(row);
+ });
+
+ document.getElementById("total").innerText="₹"+total;
+
+ if(cart.length===0){
+  box.textContent="Your cart is empty!";
+ }
+}
+
+function openCart(){
+ document.getElementById("cartPage").style.display="block";
+ showCart();
+}
+
+function closeCart(){
+ document.getElementById("cartPage").style.display="none";
+}
+
+function filter(category){
+ current=category;
+ document.getElementById("heading").innerText=
+ category==="All"?"Popular Products":category;
+ showProducts();
+}
+
+function showProducts(){
+ let query = document.getElementById("search").value.toLowerCase().trim();
+
+ let sellerItems = [];
+ try{
+  sellerItems = JSON.parse(localStorage.getItem("vibely_products") || "[]");
+ }catch(e){}
+
+ let allItems = [...items, ...sellerItems];
+console.log(allItems);
+ let filtered = allItems.filter(item => {
+  let name = (item.name || "").toLowerCase();
+  let category = (item.cat || item.category || "").toLowerCase();
+
+  let matchesSearch = name.includes(query) || category.includes(query);
+
+  let matchesCategory =
+   current === "All" ||
+   (item.cat || item.category || "").toLowerCase() === current.toLowerCase();
+
+  return matchesSearch && matchesCategory;
+ });
+
+ let container = document.getElementById("products");
+ container.innerHTML = "";
+
+ filtered.forEach(item => {
+  let card = document.createElement("div");
+  card.className = "product";
+
+  let pic = document.createElement("div");
+  pic.className = "pic";
+
+  if(item.image){
+   let img = document.createElement("img");
+   img.src = item.image;
+   img.style.width = "100%";
+   img.style.height = "120px";
+   img.style.objectFit = "contain";
+   pic.appendChild(img);
+  }else{
+   pic.textContent = item.pic || "🛍️";
+  }
+
+  let name = document.createElement("b");
+  name.textContent = item.name;
+
+  let price = document.createElement("p");
+  price.textContent = "₹" + item.price;
+
+  let button = document.createElement("button");
+  button.textContent = "Add to Cart";
+  button.onclick = () => addToCart(item);
+
+  card.append(pic, name, price);
+
+card.style.cursor = "pointer";
+card.onclick = () => openProduct(item);
+
+button.onclick = (e) => {
+  e.stopPropagation();
+  addToCart(item);
+};
+
+card.appendChild(button);
+container.appendChild(card);
+ });
+
+ if(filtered.length === 0){
+  container.textContent = "No products found.";
+ }
+}
+
+
+updateCartCount();
+showProducts();
+function openCart(){
+  document.getElementById("cartPage").style.display = "block";
+  showCart();
+}
+
+function closeCart(){
+  document.getElementById("cartPage").style.display = "none";
+}
+let orders = JSON.parse(localStorage.getItem("vibely_orders") || "[]");
+
+function getCurrentLocationAddress(){
+
+  return new Promise((resolve, reject) => {
+
+    if(!navigator.geolocation){
+      reject("Location is not supported!");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+
+        let lat = position.coords.latitude;
+        let lon = position.coords.longitude;
+
+        try{
+          let response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+          );
+
+          if(!response.ok) throw new Error("Address unavailable");
+
+          let data = await response.json();
+
+          resolve({
+            address: data.display_name || `Latitude: ${lat}, Longitude: ${lon}`,
+            latitude: lat,
+            longitude: lon
+          });
+
+        }catch(error){
+
+          resolve({
+            address: `GPS Location: ${lat}, ${lon}`,
+            latitude: lat,
+            longitude: lon
+          });
+
+        }
+      },
+
+      (error) => reject(error.message),
+
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0
+      }
+    );
+  });
+}
+
+async function placeOrder(){
+
+  if(cart.length === 0){
+    alert("Your cart is empty!");
+    return;
+  }
+
+  let customerName = prompt("Enter your name:");
+  let customerPhone = prompt("Enter your mobile number:");
+
+  if(!customerName || !customerPhone){
+    alert("Please enter your name and mobile number!");
+    return;
+  }
+
+  let customerAddress = "";
+  let latitude = null;
+  let longitude = null;
+
+  let useLocation = confirm(
+    "Use your current GPS location for delivery?"
+  );
+
+  if(useLocation){
+
+    try{
+      alert("Please allow location permission.");
+
+      let location = await getCurrentLocationAddress();
+
+      customerAddress = location.address;
+      latitude = location.latitude;
+      longitude = location.longitude;
+
+    }catch(error){
+
+      alert("Location not available. Please enter address manually.");
+
+      customerAddress = prompt("Enter your delivery address:");
+
+    }
+
+  }else{
+
+    customerAddress = prompt("Enter your delivery address:");
+
+  }
+
+  if(!customerAddress){
+    alert("Delivery address is required!");
+    return;
+  }
+
+  let order = {
+    id: Date.now(),
+    customerName: customerName,
+    customerPhone: customerPhone,
+    customerAddress: customerAddress,
+    latitude: latitude,
+    longitude: longitude,
+    locationUrl: latitude !== null
+      ? `https://www.google.com/maps?q=${latitude},${longitude}`
+      : "",
+    items: [...cart],
+    total: cart.reduce(
+      (sum,item) => sum + item.price * item.qty, 0
+    ),
+    date: new Date().toLocaleString(),
+    status: "Pending"
+  };
+
+  orders.push(order);
+
+  localStorage.setItem(
+    "vibely_orders",
+    JSON.stringify(orders)
+  );
+
+  cart = [];
+  saveCart();
+  showCart();
+  updateCartCount();
+
+  alert("Order placed successfully! 🎉");
+}
+
+function openOrders(){
+  document.getElementById("cartPage").style.display = "none";
+  document.getElementById("ordersPage").style.display = "block";
+  showOrders();
+}
+
+function closeOrders(){
+  document.getElementById("ordersPage").style.display = "none";
+}
+
+function showOrders(){
+  let list = document.getElementById("orderList");
+
+  if(orders.length === 0){
+    list.innerHTML = "No orders yet.";
+    return;
+  }
+
+  // Latest orders first
+  list.innerHTML = orders.slice().reverse().map(order => `
+    <div style="border:1px solid #ddd;padding:12px;margin:10px 0;border-radius:10px;">
+
+      <h3>Order #${order.id}</h3>
+
+      <p>${order.date}</p>
+      <p>Customer: ${order.customerName || "Not available"}</p>
+<p>Mobile: ${order.customerPhone || "Not available"}</p>
+<p>Delivery Address: ${order.customerAddress || "Not available"}</p>
+<p>Delivery Address: ${order.customerAddress || "Not available"}</p>
+
+      <p>Total: ₹${order.total}</p>
+
+      <p>Status:
+        <b style="color:${order.status === 'Delivered' ? 'green' : order.status === 'Accepted' ? 'blue' : 'orange'};">
+          ${order.status || "Pending"}
+        </b>
+      </p>
+
+    </div>
+  `).join("");
+}
+
+  function openSellerDashboard(){
+  document.getElementById("cartPage").style.display = "none";
+  document.getElementById("ordersPage").style.display = "none";
+  document.getElementById("sellerDashboard").style.display = "block";
+  showSellerOrders();
+}
+
+function closeSellerDashboard(){
+  document.getElementById("sellerDashboard").style.display = "none";
+}
+
+function showSellerOrders(){
+  let box = document.getElementById("sellerOrders");
+
+  if(orders.length === 0){
+    box.innerHTML = "No orders yet.";
+    return;
+  }
+
+  box.innerHTML = orders.map(order => `
+    <div style="border:1px solid #ddd;padding:12px;margin:10px 0;border-radius:10px;">
+      <h3>Order #${order.id}</h3>
+
+      <p>Customer: ${order.customerName || "Not available"}</p>
+      <p>Mobile: ${order.customerPhone || "Not available"}</p>
+      <p>Total: ₹${order.total}</p>
+      <p>Status: ${order.status || "Pending"}</p>
+
+      <button onclick="changeOrderStatus(${order.id}, 'Accepted')">Accept</button>
+      <button onclick="changeOrderStatus(${order.id}, 'Delivered')">Delivered</button>
+    </div>
+  `).join("");
+}
+function changeOrderStatus(id, status){
+  let order = orders.find(o => o.id === id);
+
+  if(order){
+    order.status = status;
+    localStorage.setItem("vibely_orders", JSON.stringify(orders));
+showSellerOrders();
+showOrders();
+  }
+}
+  function openSellerLogin(){
+  document.getElementById("sellerDashboard").style.display = "none";
+  document.getElementById("sellerLogin").style.display = "block";
+}
+
+function closeSellerLogin(){
+  document.getElementById("sellerLogin").style.display = "none";
+}
+
+function sellerLoginNow(){
+  let name = document.getElementById("sellerName").value.trim();
+
+  if(name === ""){
+    alert("Please enter seller name!");
+    return;
+  }
+
+  localStorage.setItem("vibely_seller", name);
+
+  document.getElementById("sellerLogin").style.display = "none";
+  document.getElementById("sellerDashboard").style.display = "block";
+  document.getElementById("sellerWelcome").innerText = name;
+
+  showSellerOrders();
+
+  alert("Welcome " + name + "! 🎉");
+}
+  function sellerLogout(){
+  localStorage.removeItem("vibely_seller");
+
+  document.getElementById("sellerDashboard").style.display = "none";
+  document.getElementById("sellerLogin").style.display = "block";
+
+  document.getElementById("sellerName").value = "";
+
+  alert("Seller logged out successfully!");
+  }
+  let savedSeller = localStorage.getItem("vibely_seller");
+
+if(savedSeller){
+  document.getElementById("sellerWelcome").innerText = savedSeller;
+  document.getElementById("sellerDashboard").style.display = "block";
+  showSellerOrders();
+}
+  let currentProduct = null;
+  let selectedDetailQty = 1;
+
+function changeDetailQty(change){
+
+  if(!currentProduct) return;
+
+  let stock = currentProduct.stock == null
+    ? 99
+    : Number(currentProduct.stock);
+
+  if(stock <= 0){
+    alert("Product out of stock!");
+    return;
+  }
+
+  selectedDetailQty += change;
+
+  if(selectedDetailQty < 1){
+    selectedDetailQty = 1;
+  }
+
+  if(selectedDetailQty > stock){
+    selectedDetailQty = stock;
+  }
+
+  document.getElementById("detailQty").textContent = selectedDetailQty;
+}
+function openProduct(item){
+  currentProduct = item;
+selectedDetailQty = 1;
+document.getElementById("detailQty").textContent = "1";
+
+  document.getElementById("productDetails").style.display = "block";
+
+  document.getElementById("products").style.display = "none";
+
+  let imgBox = document.getElementById("detailImage");
+  imgBox.innerHTML = "";
+
+  if(item.image){
+    let img = document.createElement("img");
+    img.src = item.image;
+    img.style.width = "100%";
+    img.style.maxHeight = "250px";
+    img.style.objectFit = "contain";
+    imgBox.appendChild(img);
+  }else{
+    imgBox.textContent = item.pic || "🛍️";
+  }
+
+  document.getElementById("detailName").textContent = item.name;
+  document.getElementById("detailPrice").textContent = "₹" + item.price;
+  document.getElementById("detailCategory").textContent = "Category: " + (item.cat || item.category || "Other");
+  document.getElementById("detailShopName").textContent = "Shop: " + (item.shopName || "Local Shop");
+  document.getElementById("detailStock").textContent = "Available Stock: " + (item.stock ?? "Not specified");
+  document.getElementById("detailDescription").textContent = item.description || "No description available.";
+
+  document.getElementById("detailAddCart").onclick = () => {
+
+  let stock = Number(item.stock || 0);
+
+  if(stock > 0 && selectedDetailQty <= stock){
+
+    for(let i = 0; i < selectedDetailQty; i++){
+      addToCart(item);
+    }
+
+  }else{
+    alert("Product out of stock!");
+  }
+};
+}
+
+function closeProduct(){
+  document.getElementById("productDetails").style.display = "none";
+  document.getElementById("products").style.display = "grid";
+}
+
+  </script>
+
+<div id="productDetails" style="display:none; padding:20px;">
+  <button onclick="closeProduct()">← Back</button>
+
+  <div id="detailImage" style="font-size:100px; text-align:center;"></div>
+
+  <h2 id="detailName"></h2>
+
+  <h2 id="detailPrice"></h2>
+
+  <p id="detailCategory"></p>
+  <p id="detailShopName"></p>
+  <p id="detailStock"></p>
+
+  <p id="detailDescription"></p>
+<div style="margin:20px 0;">
+  <h3>Select Quantity</h3>
+
+  <button onclick="changeDetailQty(-1)" style="width:60px;">−</button>
+
+  <span id="detailQty" style="padding:15px;">1</span>
+
+  <button onclick="changeDetailQty(1)" style="width:60px;">+</button>
+</div>
+  <button id="detailAddCart">Add to Cart</button>
+
+  </div>
+  <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+  </script>

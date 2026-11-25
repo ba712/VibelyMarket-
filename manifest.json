@@ -1,0 +1,10 @@
+{
+  "name": "Vibely Market",
+  "short_name": "Vibely",
+  "description": "Shop from your favourite local stores",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6c3bff",
+  "orientation": "portrait"
+}

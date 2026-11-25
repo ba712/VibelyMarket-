@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vibely Market - Seller</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+ font-family:Arial,sans-serif;
+ background:#f7f5fc;
+ color:#241b35;
+ padding:18px;
+}
+header{
+ background:#21172f;color:white;
+ padding:23px;border-radius:17px;
+ margin-bottom:22px;
+}
+header h1{font-size:27px}
+header span{color:#b18aff}
+header p{margin-top:8px;color:#ddd}
+.card,.product{
+ background:white;padding:20px;
+ border-radius:17px;margin-bottom:15px;
+}
+h2{margin-bottom:12px}
+label{
+ display:block;margin-top:17px;
+ font-weight:bold;font-size:14px;
+}
+input,select,textarea{
+ width:100%;padding:14px;
+ margin-top:8px;border:1px solid #ddd;
+ border-radius:10px;font-size:15px;
+ background:white;
+}
+textarea{min-height:85px}
+#preview{
+ display:none;max-width:100%;
+ max-height:180px;margin:12px auto;
+}
+button{
+ width:100%;padding:14px;margin-top:20px;
+ background:#8055e8;color:white;
+ border:0;border-radius:11px;
+ font-size:16px;font-weight:bold;
+}
+.delete{background:#dc4444}
+.product img{
+ width:100%;height:150px;
+ object-fit:contain;
+}
+.product p{margin-top:8px}
+.note{color:#777;font-size:12px;margin-top:12px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Vibely <span>Market</span></h1>
+<p>Seller Dashboard - Add New Product</p>
+</header>
+
+<div class="card">
+
+<h2>Add Your Product</h2>
+  <div style="background:#f1ebff;padding:15px;border-radius:12px;margin-bottom:15px;">
+
+  <h3>My Shop Details</h3>
+
+  <input id="shopName" placeholder="Enter your shop name">
+
+  <button type="button" onclick="saveShopName()">
+    Save Shop Name
+  </button>
+
+  <p id="shopStatus"></p>
+
+  </div>
+
+<form id="productForm">
+
+<label>Product Name</label>
+<input id="name" required placeholder="Enter product name">
+
+<label>Product Category</label>
+<select id="category" required>
+<option value="">Select category</option>
+<option>Food</option>
+<option>Fashion</option>
+<option>Grocery</option>
+<option>Electronics</option>
+<option>Other</option>
+</select>
+
+<label>Product Price (₹)</label>
+<input id="price" type="number" min="1" required placeholder="Enter price">
+
+<label>Stock Quantity</label>
+<input id="stock" type="number" min="0" required placeholder="Enter quantity">
+
+<label>Product Description</label>
+<textarea id="description" placeholder="Describe your product"></textarea>
+
+<label>Product Photo</label>
+<input id="photo" type="file" accept="image/*" required>
+
+<img id="preview" alt="Product preview">
+
+<button type="submit">Add Product</button>
+
+</form>
+
+<p class="note">
+Products are saved in this browser on this device.
+This is a local demo, not yet connected to an online server.
+</p>
+
+</div>
+
+<h2>My Products</h2>
+<div id="productList"></div>
+
+<script>
+
+const KEY="vibely_products";
+let selectedImage="";
+
+function getProducts(){
+ try{
+  return JSON.parse(localStorage.getItem(KEY)||"[]");
+ }catch(e){
+  return [];
+ }
+}
+  function saveShopName(){
+
+  let name = document.getElementById("shopName").value.trim();
+
+  if(name === ""){
+    alert("Please enter shop name!");
+    return;
+  }
+
+  localStorage.setItem("vibely_shop_name", name);
+
+  document.getElementById("shopStatus").textContent =
+    "Shop saved: " + name;
+
+  alert("Shop name saved successfully!");
+  }
+
+document.getElementById("photo").addEventListener("change",function(){
+
+ const file=this.files[0];
+ if(!file)return;
+
+ if(!file.type.startsWith("image/")){
+  alert("Please select an image");
+  this.value="";
+  return;
+ }
+
+ const reader=new FileReader();
+
+ reader.onload=function(e){
+
+  const img=new Image();
+
+  img.onload=function(){
+
+   const canvas=document.createElement("canvas");
+   const max=600;
+   const scale=Math.min(1,max/img.width,max/img.height);
+
+   canvas.width=Math.round(img.width*scale);
+   canvas.height=Math.round(img.height*scale);
+
+   const ctx=canvas.getContext("2d");
+   ctx.drawImage(img,0,0,canvas.width,canvas.height);
+
+   selectedImage=canvas.toDataURL("image/jpeg",0.7);
+
+   const preview=document.getElementById("preview");
+   preview.src=selectedImage;
+   preview.style.display="block";
+  };
+
+  img.src=e.target.result;
+ };
+
+ reader.readAsDataURL(file);
+
+});
+
+document.getElementById("productForm")
+.addEventListener("submit",function(e){
+
+ e.preventDefault();
+
+ if(!selectedImage){
+  alert("Please select a product photo");
+  return;
+ }
+
+ const product={
+  id:Date.now(),
+   shopName: localStorage.getItem("vibely_shop_name") || "Local Shop",
+  name:document.getElementById("name").value.trim(),
+  category:document.getElementById("category").value,
+  cat:document.getElementById("category").value,
+  price:Number(document.getElementById("price").value),
+  stock:Number(document.getElementById("stock").value),
+  description:document.getElementById("description").value,
+  image:selectedImage
+ };
+
+ const products=getProducts();
+ products.push(product);
+
+ try{
+  localStorage.setItem(KEY,JSON.stringify(products));
+  alert("Product saved successfully!");
+  this.reset();
+  selectedImage="";
+  document.getElementById("preview").style.display="none";
+  showProducts();
+ }catch(error){
+  alert("Storage full. Try a smaller product photo.");
+ }
+
+});
+
+function showProducts(){
+
+ const list=document.getElementById("productList");
+ const products=getProducts();
+
+ list.innerHTML="";
+
+ products.forEach((p,index)=>{
+
+  const card=document.createElement("div");
+  card.className="product";
+
+  const img=document.createElement("img");
+  img.src=p.image;
+  img.alt=p.name;
+
+  const name=document.createElement("h3");
+  name.textContent=p.name;
+
+  const details=document.createElement("p");
+  details.textContent=
+   "Category: "+p.category+
+   " | Price: ₹"+p.price+
+   " | Stock: "+p.stock;
+
+  const desc=document.createElement("p");
+  desc.textContent=p.description;
+
+  const btn=document.createElement("button");
+  btn.className="delete";
+  btn.textContent="Delete Product";
+
+  btn.onclick=function(){
+   const updated=getProducts();
+   updated.splice(index,1);
+   localStorage.setItem(KEY,JSON.stringify(updated));
+   showProducts();
+  };
+
+  card.append(img,name,details,desc,btn);
+  list.appendChild(card);
+
+ });
+
+ if(products.length===0){
+  list.textContent="No products added yet.";
+ }
+}
+
+showProducts();
+
+</script>
+</body>
+</html>

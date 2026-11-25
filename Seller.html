@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibely Market - Seller</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ padding:20px;
+ font-family:Arial,sans-serif;
+ background:#f7f5fc;
+ color:#241b35;
+}
+header{
+ background:#21172f;
+ color:white;
+ padding:22px;
+ border-radius:18px;
+ margin-bottom:22px;
+}
+header h1{margin:0;color:#b18aff}
+header p{color:#ddd;margin-bottom:0}
+.card{
+ background:white;
+ padding:20px;
+ border-radius:18px;
+ box-shadow:0 3px 15px #0000000d;
+}
+h2{margin-top:0}
+label{
+ display:block;
+ margin-top:17px;
+ font-weight:bold;
+ font-size:14px;
+}
+input,select{
+ width:100%;
+ padding:14px;
+ margin-top:8px;
+ border:1px solid #ddd;
+ border-radius:10px;
+ font-size:15px;
+ background:white;
+}
+button{
+ width:100%;
+ padding:15px;
+ margin-top:24px;
+ background:#8055e8;
+ color:white;
+ border:0;
+ border-radius:11px;
+ font-size:16px;
+ font-weight:bold;
+}
+.note{
+ color:#777;
+ font-size:12px;
+ line-height:1.5;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Vibely Market</h1>
+<p>Become a Seller Partner</p>
+</header>
+
+<div class="card">
+
+<h2>Register Your Shop</h2>
+<p>Join Vibely Market and showcase your products.</p>
+
+<form id="sellerForm">
+
+<label>Shop Name</label>
+<input
+ type="text"
+ id="shop"
+ placeholder="Enter your shop name"
+ required
+>
+
+<label>Owner Name</label>
+<input
+ type="text"
+ id="owner"
+ placeholder="Enter owner name"
+ required
+>
+
+<label>Business Category</label>
+<select id="category" required>
+<option value="">Select category</option>
+<option>Food & Restaurant</option>
+<option>Clothing & Fashion</option>
+<option>Grocery</option>
+<option>Electronics</option>
+<option>Other</option>
+</select>
+
+<label>Shop City</label>
+<input
+ type="text"
+ id="city"
+ placeholder="Enter city"
+ required
+>
+
+<label>Shop Area</label>
+<input
+ type="text"
+ id="area"
+ placeholder="Enter shop area"
+ required
+>
+
+<label>Products You Sell</label>
+<input
+ type="text"
+ id="products"
+ placeholder="Example: Clothes, Shoes"
+ required
+>
+
+<p class="note">
+This is a demonstration registration form.
+Your information is not being uploaded or saved
+to a server yet.
+</p>
+
+<button type="submit">Submit Registration</button>
+
+</form>
+</div>
+
+<script>
+document.getElementById("sellerForm")
+.addEventListener("submit",function(e){
+
+ e.preventDefault();
+
+ alert(
+ "Registration demo successful! " +
+ "Backend connection is coming soon."
+ );
+
+ this.reset();
+
+});
+</script>
+
+</body>
+</html>
