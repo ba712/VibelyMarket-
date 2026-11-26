@@ -152,17 +152,32 @@ Place Order
   <div id="orderList">No orders yet.</div>
   <button onclick="closeOrders()">Back to Shopping</button>
 </section>
+  <section id="wishlistPage" style="display:none;background:white;color:black;padding:20px;border-radius:15px;margin:20px 0;">
+  <h2>❤️ My Wishlist</h2>
+  <div id="wishlistItems">No favourites yet.</div>
+  <button onclick="closeWishlist()">Back to Shopping</button>
+</section>
+
+<section id="profilePage" style="display:none;background:white;color:black;padding:20px;border-radius:15px;margin:20px 0;">
+  <h2>👤 My Profile</h2>
+  <input id="profileName" placeholder="Your name">
+  <input id="profilePhone" placeholder="Mobile number" inputmode="numeric">
+  <textarea id="profileAddress" placeholder="Delivery address"></textarea>
+  <button onclick="saveProfile()">Save Profile</button>
+  <p id="profileStatus"></p>
+  <button onclick="closeProfile()">Back to Shopping</button>
+</section>
 </main>
 
 <footer></footer>
 
 <nav>
  <button onclick="filter('All')">🏠 Home</button>
- <button onclick="alert('Wishlist coming soon')">♡ Wishlist</button>
+ <button onclick="openWishlist()">❤️ Wishlist</button>
  <button onclick="openCart()">🛒 Cart (<span id="cart">0</span>)</button>
   <button onclick="openOrders()">📦 My Orders</button>
   <button onclick="openSellerLogin()">🔐 Seller Login</button>
- <button onclick="alert('Profile coming soon')">👤 Profile</button>
+ <button onclick="openProfile()">👤 Profile</button>
 </nav>
 
 <script>
@@ -264,6 +279,48 @@ function showCart(){
   box.textContent="Your cart is empty!";
  }
 }
+  let wishlist = JSON.parse(localStorage.getItem("vibely_wishlist") || "[]");
+
+function addToWishlist(product){
+  let exists = wishlist.some(item => item.id === product.id);
+
+  if(exists){
+    alert("Already in Wishlist!");
+    return;
+  }
+
+  wishlist.push(product);
+  localStorage.setItem("vibely_wishlist", JSON.stringify(wishlist));
+  alert("Added to Wishlist ❤️");
+}
+
+function openWishlist(){
+  document.getElementById("cartPage").style.display = "none";
+  document.getElementById("ordersPage").style.display = "none";
+  document.getElementById("sellerDashboard").style.display = "none";
+  document.getElementById("sellerLogin").style.display = "none";
+  document.getElementById("wishlistPage").style.display = "block";
+
+  let box = document.getElementById("wishlistItems");
+  box.innerHTML = "";
+
+  if(wishlist.length === 0){
+    box.textContent = "No favourites yet.";
+    return;
+  }
+
+  wishlist.forEach(item => {
+    let div = document.createElement("div");
+    div.textContent = item.name + " - ₹" + item.price;
+    box.appendChild(div);
+  });
+}
+
+function closeWishlist(){
+  document.getElementById("wishlistPage").style.display = "none";
+  document.getElementById("heading").style.display = "block";
+  document.getElementById("products").style.display = "grid";
+}
 
 function openCart(){
  document.getElementById("cartPage").style.display="block";
@@ -330,7 +387,12 @@ console.log(allItems);
 
   let price = document.createElement("p");
   price.textContent = "₹" + item.price;
-
+let heart = document.createElement("button");
+heart.textContent = "❤️ Wishlist";
+heart.onclick = (e) => {
+  e.stopPropagation();
+  addToWishlist(item);
+};
   let button = document.createElement("button");
   button.textContent = "Add to Cart";
   button.onclick = () => addToCart(item);
@@ -346,6 +408,7 @@ button.onclick = (e) => {
 };
 
 card.appendChild(button);
+   card.appendChild(heart);
 container.appendChild(card);
  });
 
@@ -364,6 +427,39 @@ function openCart(){
 
 function closeCart(){
   document.getElementById("cartPage").style.display = "none";
+}
+  function openProfile(){
+  document.getElementById("cartPage").style.display = "none";
+  document.getElementById("wishlistPage").style.display = "none";
+  document.getElementById("ordersPage").style.display = "none";
+  document.getElementById("sellerDashboard").style.display = "none";
+  document.getElementById("sellerLogin").style.display = "none";
+
+  document.getElementById("profilePage").style.display = "block";
+
+  let profile = JSON.parse(localStorage.getItem("vibely_profile") || "{}");
+
+  document.getElementById("profileName").value = profile.name || "";
+  document.getElementById("profilePhone").value = profile.phone || "";
+  document.getElementById("profileAddress").value = profile.address || "";
+}
+
+function saveProfile(){
+  let profile = {
+    name: document.getElementById("profileName").value.trim(),
+    phone: document.getElementById("profilePhone").value.trim(),
+    address: document.getElementById("profileAddress").value.trim()
+  };
+
+  localStorage.setItem("vibely_profile", JSON.stringify(profile));
+
+  document.getElementById("profileStatus").textContent = "Profile saved successfully! ✅";
+}
+
+function closeProfile(){
+  document.getElementById("profilePage").style.display = "none";
+  document.getElementById("heading").style.display = "block";
+  document.getElementById("products").style.display = "grid";
 }
 let orders = JSON.parse(localStorage.getItem("vibely_orders") || "[]");
 
@@ -662,6 +758,30 @@ function changeDetailQty(change){
 
   document.getElementById("detailQty").textContent = selectedDetailQty;
 }
+  function addCurrentToWishlist(){
+  if(!currentProduct) return;
+  addToWishlist(currentProduct);
+}
+
+function orderNow(){
+  if(!currentProduct) return;
+
+  let stock = currentProduct.stock == null
+    ? 99
+    : Number(currentProduct.stock);
+
+  if(stock <= 0 || selectedDetailQty > stock){
+    alert("Product out of stock!");
+    return;
+  }
+
+  for(let i = 0; i < selectedDetailQty; i++){
+    addToCart(currentProduct);
+  }
+
+  closeProduct();
+  openCart();
+}
 function openProduct(item){
   currentProduct = item;
 selectedDetailQty = 1;
@@ -739,10 +859,57 @@ function closeProduct(){
   <button onclick="changeDetailQty(1)" style="width:60px;">+</button>
 </div>
   <button id="detailAddCart">Add to Cart</button>
+<button id="detailOrderNow" onclick="orderNow()">
+  🛒 Order Now
+</button>
 
+<button id="detailWishlist" onclick="addCurrentToWishlist()">
+  ❤️ Add to Wishlist
+</button>
   </div>
   <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js");
 }
   </script>
+<div class="card" id="aiTools">
+<h2>🤖 Vibely AI Assistant</h2>
+<p>Smart tools for your business</p>
+
+<input id="aiProduct" placeholder="Enter product name">
+
+<button onclick="aiTool('description')">✨ AI Description</button>
+<button onclick="aiTool('price')">💰 Smart Pricing</button>
+<button onclick="aiTool('sales')">📊 Sales Analysis</button>
+<button onclick="aiTool('ideas')">💡 Product Ideas</button>
+
+<div id="aiResult"></div>
+</div>
+
+<script>
+function aiTool(type){
+ let name=document.getElementById("aiProduct").value.trim();
+ let result="";
+
+ if(type==="description"){
+ result=name
+ ? name+" is a quality product. Explore its features and details at Vibely Market."
+ : "Please enter a product name.";
+ }
+
+ else if(type==="price"){
+ result="Compare product cost, packaging, delivery and market prices before setting your selling price.";
+ }
+
+ else if(type==="sales"){
+ result="Review your total orders, revenue and popular products to understand sales performance.";
+ }
+
+ else if(type==="ideas"){
+ result="Try adding trending local products, grocery essentials, fashion items and popular food products.";
+ }
+
+ document.getElementById("aiResult").innerHTML=
+ "<p>"+result+"</p>";
+}
+</script>
