@@ -139,7 +139,51 @@ to a server yet.
 
 </form>
 </div>
+<div class="card" style="margin-top:22px;">
+  <h2>🤖 Vibely AI Intelligence</h2>
+  <p>Your Personal AI Business Manager</p>
 
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+    <button type="button" onclick="aiTool('description')">
+      📝 Product Description
+    </button>
+
+    <button type="button" onclick="aiTool('price')">
+      💰 Smart Pricing
+    </button>
+
+    <button type="button" onclick="aiTool('sales')">
+      📊 Sales Analysis
+    </button>
+
+    <button type="button" onclick="aiTool('stock')">
+      📦 Stock Alerts
+    </button>
+
+    <button type="button" onclick="aiTool('demand')">
+      🔮 Demand Prediction
+    </button>
+
+    <button type="button" onclick="aiTool('security')">
+      🛡️ Listing Security
+    </button>
+
+  </div>
+
+  <h3>💬 Ask Vibely AI</h3>
+
+  <input id="aiQuestion" placeholder="Ask about your business...">
+
+  <button type="button" onclick="askVibelyAI()">
+    Ask AI
+  </button>
+
+  <div id="aiResponse"
+  style="margin-top:15px;padding:15px;background:#f2edff;border-radius:12px;min-height:60px;">
+  Your AI assistant is ready.
+  </div>
+</div>
 <script>
 document.getElementById("sellerForm")
 .addEventListener("submit",function(e){
@@ -149,12 +193,87 @@ document.getElementById("sellerForm")
  alert(
  "Registration demo successful! " +
  "Backend connection is coming soon."
- );
+);
 
- this.reset();
+this.reset();
 
 });
+function aiTool(type){
+
+ let result = "";
+
+ if(type === "description"){
+  result = "Product ka naam aur details enter karke description taiyar karein. Quality, features aur actual specifications zaroor check karein.";
+ }
+
+ else if(type === "price"){
+  result = "Smart Pricing: Product cost, delivery, packaging aur competitor prices compare karke selling price decide karein.";
+ }
+
+ else if(type === "sales"){
+  result = "Sales Analysis: Sales data connect hone ke baad Vibely AI revenue aur popular products ka analysis karega.";
+ }
+
+ else if(type === "stock"){
+  result = "Stock Alert: Product quantity aur sales data connect hone ke baad low-stock alerts milenge.";
+ }
+
+ else if(type === "demand"){
+  result = "Demand Prediction: Historical sales data ke basis par future demand estimate hogi.";
+ }
+
+ else if(type === "security"){
+  result = "Listing Security: Suspicious product information ko review ke liye flag kiya ja sakta hai.";
+ }
+
+ document.getElementById("aiResponse").textContent = result;
+}
+
+async function askVibelyAI(){
+
+  let question = document.getElementById("aiQuestion").value.trim();
+  let response = document.getElementById("aiResponse");
+
+  if(!question){
+    alert("Please enter your question!");
+    return;
+  }
+
+  response.textContent = "Vibely AI is thinking...";
+
+  try {
+
+    let result = await fetch(
+      "https://vibely-ai-gs7q.onrender.com/api/ask",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          question: question
+        })
+      }
+    );
+
+    let data = await result.json();
+
+    if(!result.ok){
+      throw new Error(data.error || "AI request failed");
+    }
+
+    response.textContent = data.answer;
+
+  } catch(error) {
+
+    response.textContent =
+      "AI connection error: " + error.message;
+
+  }
+}
+
 </script>
 
 </body>
 </html>
+
